@@ -163,14 +163,11 @@ void USART2_CheckDmaReception(void)
 	if(USART2_ProcessData == 0) return;
 
 	static uint16_t old_pos = 0;
-
 	uint16_t pos = DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
 
 	if (pos != old_pos)
 	{
-//		if (DMA_USART2_BUFFER_SIZE - pos < 20){
-//			LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
-//		}
+
 		if (pos > old_pos)
 		{
 			USART2_ProcessData(&bufferUSART2dma[old_pos], pos - old_pos);
@@ -187,6 +184,10 @@ void USART2_CheckDmaReception(void)
 
 		if (pos >= (DMA_USART2_BUFFER_SIZE - 20)){
 			LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
+			 LL_DMA_ConfigAddresses(	DMA1, LL_DMA_CHANNEL_6,
+					  LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),
+					  (uint32_t)bufferUSART2dma,
+					  LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
 			LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
 			LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
 
@@ -201,7 +202,34 @@ void USART2_CheckDmaReception(void)
 	{
 		old_pos = 0;
 	}
+	if (pos != old_pos)
+	        {
+	            if (pos < (DMA_USART2_BUFFER_SIZE-20))
+	            {
+	                USART2_ProcessData(&bufferUSART2dma[old_pos], pos - old_pos);
+	                old_pos = pos;
+	            }
+	            else
+	            {
+
+
+	                USART2_ProcessData(&bufferUSART2dma[old_pos], DMA_USART2_BUFFER_SIZE - old_pos);
+	                memset(bufferUSART2dma, 0, DMA_USART2_BUFFER_SIZE);
+	                LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
+	                LL_DMA_ConfigAddresses(     DMA1, LL_DMA_CHANNEL_6,
+	                                            LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),
+	                                            (uint32_t)bufferUSART2dma,
+	                                            LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
+	                LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
+	                LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
+	                LL_USART_EnableDMAReq_RX(USART2);
+
+
+	                old_pos = 0;
+	            }
+	        }
 }
+
 
 
 

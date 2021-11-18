@@ -28,4 +28,4 @@ stm32f3xx_ll_usart.h:3468:26:LL_USART_DMA_GetRegAddr	16	static
 usart.c:30:6:USART2_RegisterCallback	16	static
 usart.c:44:6:MX_USART2_UART_Init	80	static
 usart.c:142:6:USART2_PutBuffer	16	static
-usart.c:160:6:USART2_CheckDmaReception	16	static
+usart.c:160:6:USART2_CheckDmaReception	32	static
