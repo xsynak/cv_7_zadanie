@@ -23,6 +23,9 @@
 #include "dma.h"
 #include "usart.h"
 #include "gpio.h"
+#include <string.h>
+#include <stdlib.h>
+
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -33,12 +36,20 @@ void SystemClock_Config(void);
  *
  * @param1 - received sign
  */
-void proccesDmaData(uint8_t sign);
+void proccesDmaData(const uint8_t* sign, uint8_t length);
 
 
 /* Space for your global variables. */
 
 	// type your global variables here:
+
+uint8_t count = 0;
+uint8_t diff = 0;
+uint8_t capital_let = 0;
+uint8_t small_let = 0;
+uint8_t is_hash = 0;
+
+
 
 
 int main(void)
@@ -60,14 +71,24 @@ int main(void)
   /* Space for your local variables, callback registration ...*/
 
   	  //type your code here:
+  USART2_RegisterCallback(proccesDmaData);
+
+  uint8_t tx_data[500];
+
 
   while (1)
   {
+	  uint8_t buffer_mem_occupied = DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
 	  /* Periodic transmission of information about DMA Rx buffer state.
 	   * Transmission frequency - 5Hz.
 	   * Message format - "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %]: %f%"
 	   * Example message (what I wish to see in terminal) - Buffer capacity: 1000 bytes, occupied memory: 231 bytes, load [in %]: 23.1%
 	   */
+	  float total_load = (float)buffer_mem_occupied/DMA_USART2_BUFFER_SIZE*100;
+
+	  USART2_PutBuffer(tx_data, sprintf((char*)tx_data, "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %%]: %3.2f \n\r",\
+	  								  DMA_USART2_BUFFER_SIZE,buffer_mem_occupied, total_load));
+	  	  LL_mDelay(1000);
 
   	  	  	  //type your code here:
   }
@@ -109,11 +130,53 @@ void SystemClock_Config(void)
 /*
  * Implementation of function processing data received via USART.
  */
-void proccesDmaData(uint8_t sign)
+void proccesDmaData(const uint8_t* sign,uint8_t length)
 {
-	/* Process received data */
 
-		// type your algorithm here:
+	if(!is_hash){
+		for(int i = 0; i< length; i++){
+
+			if(*(sign+i) == '#'){
+				is_hash = 1;
+				diff = i;
+			}
+
+		}
+	}
+
+	if(is_hash){
+
+		for(int i = 0; i< (length-diff); i++){
+
+			if(*(sign+diff+i) == '$' || (count + i + diff) >= 35)
+			{
+				small_let = 0;
+				capital_let = 0;
+			    count = 0;
+				is_hash = 0;
+				break;
+			}
+			    if(*(sign+diff+i) >= 'a' && *(sign+diff+i) <= 'z'){
+					small_let++;
+				}
+
+				if(*(sign+diff+i) >= 'A' && *(sign+diff+i) <= 'Z'){
+					capital_let++;
+				}
+
+				if(*(sign+diff+i) == '\r'){
+					count = count + i + diff;
+					diff = 0;
+					break;
+				}
+
+			}
+
+
+
+	}
+
+	return;
 }
 
 
