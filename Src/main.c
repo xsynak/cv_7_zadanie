@@ -50,8 +50,6 @@ uint8_t small_let = 0;
 uint8_t is_hash = 0;
 
 
-
-
 int main(void)
 {
   /* MCU Configuration--------------------------------------------------------*/
@@ -88,7 +86,7 @@ int main(void)
 
 	  USART2_PutBuffer(tx_data, sprintf((char*)tx_data, "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %%]: %3.2f \n\r",\
 	  								  DMA_USART2_BUFFER_SIZE,buffer_mem_occupied, total_load));
-	  	  LL_mDelay(1000);
+	  LL_mDelay(1000);
 
   	  	  	  //type your code here:
   }
@@ -150,6 +148,10 @@ void proccesDmaData(const uint8_t* sign,uint8_t length)
 
 			if(*(sign+diff+i) == '$' || (count + i + diff) >= 35)
 			{
+				uint8_t let_count[100];
+				uint8_t lng = sprintf((char*) let_count, "Small letters: %d, capital letters: %d\n\r", small_let, capital_let);
+				USART2_PutBuffer(let_count, lng);
+
 				small_let = 0;
 				capital_let = 0;
 			    count = 0;

@@ -89,10 +89,9 @@ void MX_USART2_UART_Init(void)
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
   LL_USART_EnableDMAReq_RX(USART2);
 
-  #if !POLLING
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_6);
   LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_6);
-  #endif
+
 
 
   /* USART2_TX Init */
@@ -123,15 +122,12 @@ void MX_USART2_UART_Init(void)
   USART_InitStruct.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
   USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
   LL_USART_Init(USART2, &USART_InitStruct);
-  LL_USART_ConfigAsyncMode(USART2);
   LL_USART_DisableIT_CTS(USART2);
 
   /* Enable USART2 peripheral and interrupts*/
 
   	  //type your code here:
-  #if !POLLING
   LL_USART_EnableIT_IDLE(USART2);
-  #endif
   LL_USART_ConfigAsyncMode(USART2);
   LL_USART_Enable(USART2);
 }
@@ -182,52 +178,23 @@ void USART2_CheckDmaReception(void)
 			}
 		}
 
+	}
+
 		if (pos >= (DMA_USART2_BUFFER_SIZE - 20)){
 			LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
-			 LL_DMA_ConfigAddresses(	DMA1, LL_DMA_CHANNEL_6,
-					  LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),
-					  (uint32_t)bufferUSART2dma,
-					  LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
+			LL_DMA_ConfigAddresses(	DMA1, LL_DMA_CHANNEL_6,
+					 LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),
+					 (uint32_t)bufferUSART2dma,
+					 LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
 			LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
 			LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
 
-		            pos = 0;
-		        }
+		    pos = 0;
+		 }
 
-	}
 
 	old_pos = pos;
 
-	if (old_pos == DMA_USART2_BUFFER_SIZE)
-	{
-		old_pos = 0;
-	}
-	if (pos != old_pos)
-	        {
-	            if (pos < (DMA_USART2_BUFFER_SIZE-20))
-	            {
-	                USART2_ProcessData(&bufferUSART2dma[old_pos], pos - old_pos);
-	                old_pos = pos;
-	            }
-	            else
-	            {
-
-
-	                USART2_ProcessData(&bufferUSART2dma[old_pos], DMA_USART2_BUFFER_SIZE - old_pos);
-	                memset(bufferUSART2dma, 0, DMA_USART2_BUFFER_SIZE);
-	                LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
-	                LL_DMA_ConfigAddresses(     DMA1, LL_DMA_CHANNEL_6,
-	                                            LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),
-	                                            (uint32_t)bufferUSART2dma,
-	                                            LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
-	                LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
-	                LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
-	                LL_USART_EnableDMAReq_RX(USART2);
-
-
-	                old_pos = 0;
-	            }
-	        }
 }
 
 
